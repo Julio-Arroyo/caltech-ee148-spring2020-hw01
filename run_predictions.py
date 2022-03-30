@@ -55,10 +55,10 @@ def detect_red_light(I):
     return bounding_boxes
 
 # set the path to the downloaded data: 
-data_path = '/Users/jarroyo/OneDrive - California Institute of Technology/Courses/2022Spring/CS148/caltech-ee148-spring2020-hw01/RedLights2011_Medium'
+data_path = '/Users/jarroyo/OneDrive - California Institute of Technology/Courses/2022Spring/CS148/caltech-ee148-spring2020-hw01/data/RedLights2011_Medium'
 
 # set a path for saving predictions: 
-preds_path = '../data/hw01_preds' 
+preds_path = 'data/hw01_preds' 
 os.makedirs(preds_path,exist_ok=True) # create directory if needed 
 
 # get sorted list of files: 
