@@ -3,6 +3,51 @@ import numpy as np
 import json
 from PIL import Image
 
+
+ALGO = 'find_red'  # 'find_red', 'catch_all'
+
+
+# Algorithms
+def catch_all(I):
+    margin = 2
+    return [[margin, margin, 240 - margin, 640 - margin]]
+
+
+def find_red(I):
+    '''
+    4 random images used to find tones of red: {213, 291, 251, }
+    '''
+    # red_tones = {(253,217,113), (240,67,97), (255,242,96), (253,168,113), }
+
+    bboxes = []
+
+    x_offset = 8
+    y_offset = 6
+
+    i = 0
+    j = 0
+    min_red = 235
+    min_blue = 95
+    max_blue = 115
+    min_green = 65
+    max_green = 245
+    
+    # use while loops instead of for loops to jump around image, sorry i know it's ugly
+    while j < I.shape[1]:
+        i = 0
+        while i < 3 * (I.shape[0] // 5):  # look at top three-fifths of image only
+            if (I[i, j, 0] > min_red
+                and I[i, j, 1] > min_green and I[i, j, 1] < max_green
+                and I[i, j, 2] > min_blue and I[i, j, 2] < max_blue):
+                bboxes.append([j-x_offset+2, i-y_offset, j+x_offset+2, i+y_offset])
+                i = I.shape[0] - 2
+                j += 20
+            i += 1
+        j += 1
+    
+    return bboxes
+
+
 def detect_red_light(I):
     '''
     This function takes a numpy array <I> and returns a list <bounding_boxes>.
@@ -17,48 +62,15 @@ def detect_red_light(I):
     I[:,:,1] is the green channel
     I[:,:,2] is the blue channel
     '''
-    
-    
-    bounding_boxes = [] # This should be a list of lists, each of length 4. See format example below. 
-    
-    '''
-    BEGIN YOUR CODE
-    '''
-    
-    '''
-    As an example, here's code that generates between 1 and 5 random boxes
-    of fixed size and returns the results in the proper format.
-    '''
-    
-    box_height = 8
-    box_width = 6
-    
-    num_boxes = np.random.randint(1,5) 
-    
-    for i in range(num_boxes):
-        (n_rows,n_cols,n_channels) = np.shape(I)
-        
-        tl_row = np.random.randint(n_rows - box_height)
-        tl_col = np.random.randint(n_cols - box_width)
-        br_row = tl_row + box_height
-        br_col = tl_col + box_width
-        
-        bounding_boxes.append([tl_row,tl_col,br_row,br_col]) 
-    
-    '''
-    END YOUR CODE
-    '''
-    
-    for i in range(len(bounding_boxes)):
-        assert len(bounding_boxes[i]) == 4
-    
-    return bounding_boxes
+    algos = {'find_red': find_red, 'catch_all': catch_all}
+
+    return algos[ALGO](I)
 
 # set the path to the downloaded data: 
-data_path = '/Users/jarroyo/OneDrive - California Institute of Technology/Courses/2022Spring/CS148/caltech-ee148-spring2020-hw01/data/RedLights2011_Medium'
+data_path = 'data/RedLights2011_Medium'
 
 # set a path for saving predictions: 
-preds_path = 'data/hw01_preds' 
+preds_path = f'data/hw01_preds/{ALGO}' 
 os.makedirs(preds_path,exist_ok=True) # create directory if needed 
 
 # get sorted list of files: 
@@ -69,10 +81,13 @@ file_names = [f for f in file_names if '.jpg' in f]
 
 preds = {}
 for i in range(len(file_names)):
-    
+# for i in range(324, 334, 1):
+    if i % 50 == 0:
+        print(f'Image #{i}')
+
     # read image using PIL:
     I = Image.open(os.path.join(data_path,file_names[i]))
-    
+
     # convert to numpy array:
     I = np.asarray(I)
     
